@@ -250,11 +250,11 @@ const styles = StyleSheet.create({
   },
 
   summary: {
-    backgroundColor: '#f3f4f6',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
+  backgroundColor: '#eef2ff',
+  padding: 18,
+  borderRadius: 15,
+  marginBottom: 20,
+},
 
   input: {
     borderWidth: 1,
@@ -306,11 +306,16 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    padding: 15,
-    borderRadius: 10,
-    backgroundColor: '#e5e7eb',
-    marginBottom: 10,
-  },
+  padding: 15,
+  borderRadius: 15,
+  backgroundColor: '#ffffff',
+  marginBottom: 10,
+
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowRadius: 5,
+  elevation: 3,
+},
 
   badge: {
     width: 15,
