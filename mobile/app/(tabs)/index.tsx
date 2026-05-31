@@ -9,12 +9,15 @@ import {
   FlatList,
 } from 'react-native';
 
+type Reading = {
+  id: string;
+  value: number;
+  timestamp: string;
+};
+
 export default function HomeScreen() {
   const [reading, setReading] = useState('');
-
-  const [readings, setReadings] = useState<
-    { id: string; value: number }[]
-  >([]);
+  const [readings, setReadings] = useState<Reading[]>([]);
 
   const handleSubmit = () => {
     const value = Number(reading);
@@ -27,9 +30,10 @@ export default function HomeScreen() {
       return;
     }
 
-    const newReading = {
+    const newReading: Reading = {
       id: Date.now().toString(),
       value,
+      timestamp: new Date().toLocaleString(),
     };
 
     setReadings((prev) => [newReading, ...prev]);
@@ -39,9 +43,44 @@ export default function HomeScreen() {
     setReading('');
   };
 
+  const totalReadings = readings.length;
+
+  const averageReading =
+    readings.length > 0
+      ? (
+          readings.reduce((sum, item) => sum + item.value, 0) /
+          readings.length
+        ).toFixed(1)
+      : '0';
+
+  const latestReading =
+    readings.length > 0
+      ? readings[0].value
+      : 'N/A';
+
+  const getBadgeColor = (value: number) => {
+    if (value > 180) return '#ef4444';
+    if (value < 70) return '#facc15';
+    return '#22c55e';
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Diabetes Tracker</Text>
+
+      <View style={styles.summary}>
+        <Text style={styles.summaryText}>
+          Total Readings: {totalReadings}
+        </Text>
+
+        <Text style={styles.summaryText}>
+          Average Reading: {averageReading}
+        </Text>
+
+        <Text style={styles.summaryText}>
+          Latest Reading: {latestReading}
+        </Text>
+      </View>
 
       <TextInput
         style={styles.input}
@@ -65,8 +104,23 @@ export default function HomeScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor: getBadgeColor(
+                    item.value
+                  ),
+                },
+              ]}
+            />
+
             <Text style={styles.cardText}>
               {item.value} mg/dL
+            </Text>
+
+            <Text style={styles.timestamp}>
+              {item.timestamp}
             </Text>
           </View>
         )}
@@ -80,14 +134,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#ffffff',
-    justifyContent: 'center',
   },
 
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 30,
+    marginTop: 50,
+    marginBottom: 20,
     textAlign: 'center',
+  },
+
+  summary: {
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: '#f3f4f6',
+    marginBottom: 20,
+  },
+
+  summaryText: {
+    fontSize: 16,
+    marginBottom: 5,
   },
 
   input: {
@@ -95,7 +161,7 @@ const styles = StyleSheet.create({
     borderColor: '#cccccc',
     borderRadius: 10,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 15,
   },
 
   button: {
@@ -109,17 +175,31 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     textAlign: 'center',
     fontWeight: 'bold',
+    fontSize: 16,
   },
 
   card: {
-    marginTop: 10,
     padding: 15,
     borderRadius: 10,
     backgroundColor: '#e5e7eb',
+    marginBottom: 10,
+  },
+
+  badge: {
+    width: 15,
+    height: 15,
+    borderRadius: 20,
+    marginBottom: 10,
   },
 
   cardText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  timestamp: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#6b7280',
   },
 });
