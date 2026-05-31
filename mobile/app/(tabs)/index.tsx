@@ -7,6 +7,7 @@ import {
   Alert,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -21,6 +22,8 @@ const STORAGE_KEY = 'diabetes_readings';
 export default function HomeScreen() {
   const [reading, setReading] = useState('');
   const [readings, setReadings] = useState<Reading[]>([]);
+  const [riskResult, setRiskResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadReadings();
@@ -72,8 +75,6 @@ export default function HomeScreen() {
 
     setReadings((prev) => [newReading, ...prev]);
 
-    Alert.alert('Success', `Reading saved: ${value}`);
-
     setReading('');
   };
 
@@ -89,10 +90,51 @@ export default function HomeScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => setReadings([]),
+          onPress: () => {
+            setReadings([]);
+            setRiskResult(null);
+          },
         },
       ]
     );
+  };
+
+  const assessRisk = async () => {
+    try {
+      if (readings.length === 0) {
+        Alert.alert(
+          'No Data',
+          'Add some glucose readings first.'
+        );
+        return;
+      }
+
+      setLoading(true);
+
+      const response = await fetch(
+        'https://literate-disco-v6qwr949j99vfwj9v-5000.app.github.dev/assess',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            readings: readings.map((r) => r.value),
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      setRiskResult(result);
+    } catch (error) {
+      Alert.alert(
+        'Connection Error',
+        'Could not connect to AI assessment server.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getBadgeColor = (value: number) => {
@@ -135,23 +177,23 @@ export default function HomeScreen() {
       </Text>
 
       <View style={styles.summary}>
-        <Text>
+        <Text style={styles.summaryText}>
           Total Readings: {totalReadings}
         </Text>
 
-        <Text>
+        <Text style={styles.summaryText}>
           Average Reading: {averageReading}
         </Text>
 
-        <Text>
+        <Text style={styles.summaryText}>
           Highest Reading: {highestReading}
         </Text>
 
-        <Text>
+        <Text style={styles.summaryText}>
           Lowest Reading: {lowestReading}
         </Text>
 
-        <Text>
+        <Text style={styles.summaryText}>
           Latest Reading: {latestReading}
         </Text>
       </View>
@@ -182,6 +224,39 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.assessButton}
+        onPress={assessRisk}
+      >
+        <Text style={styles.buttonText}>
+          Assess Risk
+        </Text>
+      </TouchableOpacity>
+
+      {loading && (
+        <ActivityIndicator
+          size="large"
+          color="#7c3aed"
+          style={{ marginBottom: 20 }}
+        />
+      )}
+
+      {riskResult && (
+        <View style={styles.riskPanel}>
+          <Text style={styles.riskTitle}>
+            Risk Level: {riskResult.risk}
+          </Text>
+
+          <Text>
+            Average Reading: {riskResult.average}
+          </Text>
+
+          <Text style={{ marginTop: 8 }}>
+            {riskResult.message}
+          </Text>
+        </View>
+      )}
+
       <Text style={styles.chartTitle}>
         Reading Chart
       </Text>
@@ -200,7 +275,7 @@ export default function HomeScreen() {
                 style={[
                   styles.chartBar,
                   {
-                    width: item.value,
+                    width: Math.min(item.value, 250),
                     backgroundColor:
                       getBadgeColor(item.value),
                   },
@@ -250,11 +325,16 @@ const styles = StyleSheet.create({
   },
 
   summary: {
-  backgroundColor: '#eef2ff',
-  padding: 18,
-  borderRadius: 15,
-  marginBottom: 20,
-},
+    backgroundColor: '#eef2ff',
+    padding: 18,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+
+  summaryText: {
+    fontSize: 15,
+    marginBottom: 4,
+  },
 
   input: {
     borderWidth: 1,
@@ -275,6 +355,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#dc2626',
     padding: 15,
     borderRadius: 10,
+    marginBottom: 10,
+  },
+
+  assessButton: {
+    backgroundColor: '#7c3aed',
+    padding: 15,
+    borderRadius: 10,
     marginBottom: 20,
   },
 
@@ -282,6 +369,19 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+
+  riskPanel: {
+    backgroundColor: '#ede9fe',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+
+  riskTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
   },
 
   chartTitle: {
@@ -306,16 +406,15 @@ const styles = StyleSheet.create({
   },
 
   card: {
-  padding: 15,
-  borderRadius: 15,
-  backgroundColor: '#ffffff',
-  marginBottom: 10,
-
-  shadowColor: '#000',
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
-  elevation: 3,
-},
+    padding: 15,
+    borderRadius: 15,
+    backgroundColor: '#ffffff',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
 
   badge: {
     width: 15,
