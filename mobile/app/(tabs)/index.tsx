@@ -6,10 +6,15 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
+  FlatList,
 } from 'react-native';
 
 export default function HomeScreen() {
   const [reading, setReading] = useState('');
+
+  const [readings, setReadings] = useState<
+    { id: string; value: number }[]
+  >([]);
 
   const handleSubmit = () => {
     const value = Number(reading);
@@ -22,7 +27,15 @@ export default function HomeScreen() {
       return;
     }
 
+    const newReading = {
+      id: Date.now().toString(),
+      value,
+    };
+
+    setReadings((prev) => [newReading, ...prev]);
+
     Alert.alert('Success', `Reading saved: ${value}`);
+
     setReading('');
   };
 
@@ -38,9 +51,26 @@ export default function HomeScreen() {
         onChangeText={setReading}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Add Reading</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSubmit}
+      >
+        <Text style={styles.buttonText}>
+          Add Reading
+        </Text>
       </TouchableOpacity>
+
+      <FlatList
+        data={readings}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.cardText}>
+              {item.value} mg/dL
+            </Text>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -49,7 +79,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
   },
 
@@ -62,7 +92,7 @@ const styles = StyleSheet.create({
 
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#cccccc',
     borderRadius: 10,
     padding: 15,
     marginBottom: 20,
@@ -72,11 +102,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563eb',
     padding: 15,
     borderRadius: 10,
+    marginBottom: 20,
   },
 
   buttonText: {
-    color: '#fff',
+    color: '#ffffff',
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+
+  card: {
+    marginTop: 10,
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: '#e5e7eb',
+  },
+
+  cardText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
