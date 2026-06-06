@@ -138,10 +138,24 @@ export default function HomeScreen() {
   };
 
   const getBadgeColor = (value: number) => {
-    if (value > 180) return '#ef4444';
-    if (value < 70) return '#facc15';
-    return '#22c55e';
-  };
+  if (value > 250) return '#dc2626';
+  if (value > 180) return '#f97316';
+  if (value < 70) return '#facc15';
+  return '#22c55e';
+};
+
+const getStatusLabel = (value: number) => {
+  if (value > 250)
+    return 'Severe Hyperglycemia';
+
+  if (value > 180)
+    return 'Elevated Glucose';
+
+  if (value < 70)
+    return 'Hypoglycemia';
+
+  return 'Target Range';
+};
 
   const totalReadings = readings.length;
 
@@ -295,12 +309,22 @@ export default function HomeScreen() {
               />
 
               <Text style={styles.cardText}>
-                {item.value} mg/dL
-              </Text>
+  {item.value} mg/dL
+</Text>
 
-              <Text style={styles.timestamp}>
-                {item.timestamp}
-              </Text>
+<Text style={styles.statusText}>
+  {getStatusLabel(item.value)}
+</Text>
+
+<Text style={styles.timestamp}>
+  {item.timestamp}
+</Text>
+
+                <Text style={styles.disclaimer}>
+              This app does not provide medical advice.
+              Consult a healthcare provider before making
+              treatment decisions.
+            </Text>
             </View>
           </View>
         )}
@@ -364,6 +388,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
   },
+  statusText: {
+  marginTop: 4,
+  fontSize: 13,
+  color: '#6b7280',
+},
+
+disclaimer: {
+  textAlign: 'center',
+  fontSize: 11,
+  color: '#6b7280',
+  marginTop: 10,
+  marginBottom: 10,
+},
 
   buttonText: {
     color: '#ffffff',
