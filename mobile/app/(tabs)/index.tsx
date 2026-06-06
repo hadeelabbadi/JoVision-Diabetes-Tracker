@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  FlatList,
   ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -196,170 +195,201 @@ const getStatusLabel = (value: number) => {
     : '0';
 
   return (
-      <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 40 }}>
+  <ScrollView
+  style={styles.container}
+  contentContainerStyle={{ paddingBottom: 40 }}
+>
+  <Text style={styles.title}>
+    Diabetes Tracker
+  </Text>
 
-      <Text style={styles.title}>
-        Diabetes Tracker
+  {/* DASHBOARD */}
+
+  <View style={styles.dashboardGrid}>
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>Average</Text>
+      <Text style={styles.statValue}>
+        {averageReading}
       </Text>
+    </View>
 
-      <View style={styles.summary}>
-        <Text style={styles.summaryText}>
-          Total Readings: {totalReadings}
-        </Text>
-
-        <Text style={styles.summaryText}>
-          Average Reading: {averageReading}
-        </Text>
-
-        <Text style={styles.summaryText}>
-          Highest Reading: {highestReading}
-        </Text>
-
-        <Text style={styles.summaryText}>
-          Lowest Reading: {lowestReading}
-        </Text>
-
-        <Text style={styles.summaryText}>
-          Latest Reading: {latestReading}
-        </Text>
-
-        <Text style={styles.summaryText}>
-          Time In Range: {timeInRange}%
-        </Text>
-
-        <Text style={styles.tirStatus}>
-        {Number(timeInRange) >= 70
-          ? 'Excellent Control'
-          : Number(timeInRange) >= 50
-          ? 'Moderate Control'
-          : 'Needs Improvement'}
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>Latest</Text>
+      <Text style={styles.statValue}>
+        {latestReading}
       </Text>
+    </View>
 
-      </View>
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>Highest</Text>
+      <Text style={styles.statValue}>
+        {highestReading}
+      </Text>
+    </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter glucose reading"
-        keyboardType="numeric"
-        value={reading}
-        onChangeText={setReading}
-      />
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>TIR</Text>
+      <Text style={styles.statValue}>
+        {timeInRange}%
+      </Text>
+    </View>
+  </View>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleSubmit}
-      >
-        <Text style={styles.buttonText}>
-          Add Reading
+  <Text style={styles.tirStatus}>
+    {Number(timeInRange) >= 70
+      ? 'Excellent Control'
+      : Number(timeInRange) >= 50
+      ? 'Moderate Control'
+      : 'Needs Improvement'}
+  </Text>
+
+  {/* INPUT */}
+
+  <TextInput
+    style={styles.input}
+    placeholder="Enter glucose reading"
+    keyboardType="numeric"
+    value={reading}
+    onChangeText={setReading}
+  />
+
+  {/* BUTTON ROW */}
+
+  <View style={styles.buttonRow}>
+    <TouchableOpacity
+      style={styles.smallButton}
+      onPress={handleSubmit}
+    >
+      <Text style={styles.buttonText}>
+        Add
+      </Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={styles.smallAssessButton}
+      onPress={assessRisk}
+    >
+      <Text style={styles.buttonText}>
+        Assess
+      </Text>
+    </TouchableOpacity>
+  </View>
+
+  <TouchableOpacity
+    style={styles.clearButton}
+    onPress={clearAllReadings}
+  >
+    <Text style={styles.buttonText}>
+      Clear All
+    </Text>
+  </TouchableOpacity>
+
+  {loading && (
+    <ActivityIndicator
+      size="large"
+      color="#7c3aed"
+      style={{ marginBottom: 20 }}
+    />
+  )}
+
+  {/* CHART */}
+
+  <Text style={styles.chartTitle}>
+    Reading Chart
+  </Text>
+
+  {readings.map((item) => (
+    <View key={item.id}>
+      <View style={styles.chartRow}>
+        <Text style={styles.chartLabel}>
+          {item.value}
         </Text>
-      </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.clearButton}
-        onPress={clearAllReadings}
-      >
-        <Text style={styles.buttonText}>
-          Clear All
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.assessButton}
-        onPress={assessRisk}
-      >
-        <Text style={styles.buttonText}>
-          Assess Risk
-        </Text>
-      </TouchableOpacity>
-
-      {loading && (
-        <ActivityIndicator
-          size="large"
-          color="#7c3aed"
-          style={{ marginBottom: 20 }}
+        <View
+          style={[
+            styles.chartBar,
+            {
+              width: Math.min(item.value, 250),
+              backgroundColor: getBadgeColor(
+                item.value
+              ),
+            },
+          ]}
         />
-      )}
+      </View>
+    </View>
+  ))}
 
-      {riskResult && (
-        <View style={styles.riskPanel}>
-          <Text style={styles.riskTitle}>
-            Risk Level: {riskResult.risk}
-          </Text>
+  {/* RISK PANEL */}
 
-          <Text>
-            Average Reading: {riskResult.average}
-          </Text>
-
-          <Text style={{ marginTop: 8 }}>
-            {riskResult.message}
-          </Text>
-        </View>
-      )}
-
-      <Text style={styles.chartTitle}>
-        Reading Chart
+  {riskResult && (
+    <View style={styles.riskPanel}>
+      <Text style={styles.riskTitle}>
+        Risk Assessment
       </Text>
 
-      <FlatList
-        data={readings}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View>
-            <View style={styles.chartRow}>
-              <Text style={styles.chartLabel}>
-                {item.value}
-              </Text>
-
-              <View
-                style={[
-                  styles.chartBar,
-                  {
-                    width: Math.min(item.value, 250),
-                    backgroundColor:
-                      getBadgeColor(item.value),
-                  },
-                ]}
-              />
-            </View>
-
-            <View style={styles.card}>
-              <View
-                style={[
-                  styles.badge,
-                  {
-                    backgroundColor:
-                      getBadgeColor(item.value),
-                  },
-                ]}
-              />
-
-              <Text style={styles.cardText}>
-  {item.value} mg/dL
-</Text>
-
-<Text style={styles.statusText}>
-  {getStatusLabel(item.value)}
-</Text>
-
-<Text style={styles.timestamp}>
-  {item.timestamp}
-</Text>
-
-                
-            </View>
-          </View>
-        )}
-      />
-            <Text style={styles.disclaimer}>
-        This app does not provide medical advice.
-        Consult a healthcare provider before making
-        treatment decisions.
+      <Text>
+        Risk Level: {riskResult.risk}
       </Text>
-     </ScrollView>
-  );
+
+      <Text>
+        Average: {riskResult.average}
+      </Text>
+
+      <Text>
+        Time In Range: {timeInRange}%
+      </Text>
+
+      <Text style={{ marginTop: 8 }}>
+        {riskResult.message}
+      </Text>
+    </View>
+  )}
+
+  {/* READINGS */}
+
+  <Text style={styles.chartTitle}>
+    Recent Readings
+  </Text>
+
+  {readings.map((item) => (
+    <View key={`card-${item.id}`}>
+      <View style={styles.card}>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: getBadgeColor(
+                item.value
+              ),
+            },
+          ]}
+        />
+
+        <Text style={styles.cardText}>
+          {item.value} mg/dL
+        </Text>
+
+        <Text style={styles.statusText}>
+          {getStatusLabel(item.value)}
+        </Text>
+
+        <Text style={styles.timestamp}>
+          {item.timestamp}
+        </Text>
+      </View>
+    </View>
+  ))}
+
+  <Text style={styles.disclaimer}>
+    This app does not provide medical advice.
+    Consult a healthcare provider before making
+    treatment decisions.
+  </Text>
+</ScrollView>
+);
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -408,6 +438,54 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
+
+  dashboardGrid: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  marginBottom: 10,
+},
+
+statCard: {
+  width: '48%',
+  backgroundColor: '#eef2ff',
+  borderRadius: 15,
+  padding: 16,
+  marginBottom: 10,
+},
+
+statLabel: {
+  fontSize: 13,
+  color: '#6b7280',
+},
+
+statValue: {
+  fontSize: 22,
+  fontWeight: 'bold',
+  marginTop: 5,
+},
+
+buttonRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginBottom: 10,
+},
+
+smallButton: {
+  flex: 1,
+  backgroundColor: '#2563eb',
+  padding: 15,
+  borderRadius: 10,
+  marginRight: 5,
+},
+
+smallAssessButton: {
+  flex: 1,
+  backgroundColor: '#7c3aed',
+  padding: 15,
+  borderRadius: 10,
+  marginLeft: 5,
+},
 
   clearButton: {
     backgroundColor: '#dc2626',
