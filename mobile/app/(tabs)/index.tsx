@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   View,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -183,9 +184,22 @@ const getStatusLabel = (value: number) => {
     readings.length > 0
       ? readings[0].value
       : 'N/A';
+      const timeInRange =
+  readings.length > 0
+    ? (
+        (readings.filter(
+          (r) => r.value >= 70 && r.value <= 180
+        ).length /
+          readings.length) *
+        100
+      ).toFixed(0)
+    : '0';
 
   return (
-    <View style={styles.container}>
+      <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 40 }}>
+
       <Text style={styles.title}>
         Diabetes Tracker
       </Text>
@@ -210,6 +224,19 @@ const getStatusLabel = (value: number) => {
         <Text style={styles.summaryText}>
           Latest Reading: {latestReading}
         </Text>
+
+        <Text style={styles.summaryText}>
+          Time In Range: {timeInRange}%
+        </Text>
+
+        <Text style={styles.tirStatus}>
+        {Number(timeInRange) >= 70
+          ? 'Excellent Control'
+          : Number(timeInRange) >= 50
+          ? 'Moderate Control'
+          : 'Needs Improvement'}
+      </Text>
+
       </View>
 
       <TextInput
@@ -320,16 +347,17 @@ const getStatusLabel = (value: number) => {
   {item.timestamp}
 </Text>
 
-                <Text style={styles.disclaimer}>
-              This app does not provide medical advice.
-              Consult a healthcare provider before making
-              treatment decisions.
-            </Text>
+                
             </View>
           </View>
         )}
       />
-    </View>
+            <Text style={styles.disclaimer}>
+        This app does not provide medical advice.
+        Consult a healthcare provider before making
+        treatment decisions.
+      </Text>
+     </ScrollView>
   );
 }
 
@@ -339,6 +367,12 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#ffffff',
   },
+
+  tirStatus: {
+    marginTop: 6,
+    fontWeight: 'bold',
+    color: '#2563eb',
+  }, 
 
   title: {
     fontSize: 28,
