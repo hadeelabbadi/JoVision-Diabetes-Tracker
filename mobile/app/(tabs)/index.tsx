@@ -343,6 +343,20 @@ const getStatusLabel = (value: number) => {
       <Text style={{ marginTop: 8 }}>
         {riskResult.message}
       </Text>
+      <Text
+        style={{
+          marginTop: 10,
+          fontWeight: '600',
+          color: '#2563eb',
+        }}
+      >
+        Recommendation:
+      </Text>
+
+      <Text style={{ marginTop: 4 }}>
+        {riskResult.recommendation}
+      </Text>
+
     </View>
   )}
 

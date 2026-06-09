@@ -4,35 +4,49 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/assess', methods=['POST'])
+@app.route("/assess", methods=["POST"])
 def assess():
-    data = request.get_json()
+    data = request.json
 
-    readings = data.get('readings', [])
+    readings = data.get("readings", [])
 
-    if not readings:
+    if len(readings) == 0:
         return jsonify({
-            "risk": "Unknown",
-            "message": "No readings provided"
-        })
+            "error": "No readings provided"
+        }), 400
 
     average = sum(readings) / len(readings)
 
-    if average > 180:
-        risk = "High"
-        message = "Consult your healthcare provider."
-    elif average > 140:
+    if average < 120:
+        risk = "Low"
+        message = "Glucose levels are within acceptable limits."
+        recommendation = (
+            "Continue your current monitoring routine "
+            "and maintain a healthy lifestyle."
+        )
+
+    elif average < 200:
         risk = "Moderate"
         message = "Monitor glucose closely."
+        recommendation = (
+            "Increase hydration, monitor glucose regularly, "
+            "and follow your prescribed treatment plan."
+        )
+
     else:
-        risk = "Low"
-        message = "Glucose levels appear stable."
+        risk = "High"
+        message = "Consult your healthcare provider."
+        recommendation = (
+            "Seek medical advice if high readings persist "
+            "and review your diabetes management plan."
+        )
 
     return jsonify({
         "risk": risk,
+        "average": round(average, 1),
         "message": message,
-        "average": round(average, 1)
+        "recommendation": recommendation
     })
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
